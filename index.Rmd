@@ -1,0 +1,138 @@
+---
+title: "Sql Website"
+output: html_document
+---
+
+library(Lahman)
+library(sqldf)
+
+Flitering
+
+###In this first exercise, we use sql to refine our search to yankee players who have hit 40 or more homeruns in one season.
+
+```{r}
+query<-"SELECT playerID,teamID,yearID,HR FROM Batting 
+WHERE teamID='NYA' and HR>=40"
+
+sqldf(query)
+```
+
+###After that, we adjust our search to any player who has hit between 40 and 60 homeruns in one season.
+
+```{r}
+query<-"SELECT playerID,teamID,yearID,HR,SO FROM Batting WHERE HR>40 and SO<60"
+
+sqldf(query)
+```
+
+###In exercise three, we search for Phillidelphia players who hit more than 30 homeruns in one season (between 1970 and 1979)
+
+```{r}
+query<-"SELECT playerID,teamID,yearID,HR FROM Batting
+WHERE teamID='PHI' and yearID>1969 and yearID<1980 and HR>30"
+
+sqldf(query)
+```
+
+
+#---------------------------------
+
+Ordering
+
+###Next, our goal is to order our data. after selecting our desired columns, the "order by ____ DESC" command is utilized to position the highest number of home runs at the top of the list.
+
+```{r}
+query<-"SELECT playerID,teamID,yearID,HR FROM Batting
+WHERE HR>50 ORDER BY HR DESC"
+
+sqldf(query)
+```
+
+###In exercise two, we order our data from least amount of strikeouts to most (Order by, but without the DESC add-on).
+
+```{r}
+query<-"SELECT playerID,teamID,yearID,SO,AB FROM Batting
+WHERE SO<10 and AB>=400
+ORDER BY SO"
+
+sqldf(query)
+```
+
+#-------------------------------
+
+Aggregation:
+
+###"Group By" is an important command, it allows us to merge all of Babe Ruth's homeruns into one row - cleaning up the data.
+
+```{r}
+query<-"SELECT playerID, sum(HR) FROM Batting 
+WHERE playerID='ruthba01'
+GROUP BY playerID"
+
+sqldf(query)
+```
+
+#-------------------------------
+
+###Example two is the same idea, however more players are encorporated.
+
+```{r}
+query<-"SELECT playerID, sum(HR) FROM Batting
+Group BY playerID
+HAVING sum(HR)>=600
+ORDER BY sum(HR) DESC"
+
+sqldf(query)
+```
+
+###Again, except this time we search for average homeruns.
+
+```{r}
+query<-"SELECT playerID, avg(HR) FROM Batting
+GROUP BY playerID
+HAVING avg(HR)>30
+ORDER BY avg(HR) DESC"
+
+sqldf(query)
+```
+
+#-------------------------------
+
+joins:
+
+###The concept of joining is the merging of multiple data sets/tables. In Lahman, quite a few tables exist that house different pieces of information. Example one uses the Batting table (which houses home runs), and the Master table, which has the full names of players. The goal here was to display Babe Ruth's actual name with his Homeruns.
+
+1.
+```{r}
+query<-"SELECT nameFirst,nameLast,yearID,teamID,HR 
+FROM Batting INNER JOIN Master
+ON Batting.playerID=Master.playerID
+WHERE Batting.playerID='ruthba01'"
+
+sqldf(query)
+```
+
+###In example two, we do the same, except with more players.
+
+2.
+```{r}
+query<-"SELECT nameFirst,nameLast,teamID,yearID, HR
+FROM Batting INNER JOIN Master
+ON Batting.playerID=Master.playerID
+WHERE HR>50
+ORDER BY HR DESC"
+
+sqldf(query)
+```
+
+###Our final example utlizes the technique to display the full name of the teams that Babe Ruth has played for.
+
+3.
+```{r}
+query<-"SELECT playerID,name,Batting.yearID,Batting.HR
+FROM Batting INNER JOIN Teams
+ON Batting.teamID=Teams.teamID AND Batting.yearID=Teams.yearID
+WHERE playerID='ruthba01'"
+
+sqldf(query)
+```
